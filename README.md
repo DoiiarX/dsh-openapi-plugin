@@ -40,3 +40,27 @@ searchable, invocable function registrations.
   present, otherwise native `fetch`.
 - Registration requires a `baseUrl` for invocations (the HTTP host that serves
   the function/endpoint).
+
+## Installation
+
+复制下面的指令块给你的 DSH agent，它会自动完成安装：
+
+```text
+请安装 oneapi 插件（@local/dsh-oneapi-plugin）：
+
+1. 前置：本机已有 deepseek-harness 源码（本插件 link 依赖其中的 dsh-tools 包，
+   位于 <deepseek-harness>/packages/core/tools）。
+2. 克隆仓库：
+   git clone https://github.com/DoiiarX/dsh-oneapi-plugin
+   cd dsh-oneapi-plugin
+3. 安装依赖：pnpm install
+   （如果 package.json 里 dsh-tools 的 link 路径与你机器不符，改成你的
+   deepseek-harness 实际路径后再装。）
+4. 挂进 web profile：编辑 $HOME/.dsh/profiles/web/package.json，
+   在 dependencies 加 "@local/dsh-oneapi-plugin": "link:<本插件目录绝对路径>"，
+   在 dsh.profile.bundles 加 "@local/dsh-oneapi-plugin"。
+5. 在 profile 目录执行 pnpm install。
+6. 重启 web 进程，验证工具列表出现 oa_register / oa_search / oa_invoke 等工具。
+```
+
+本插件无设置页，不需要改 WEB_SETTINGS_NAMESPACES 白名单。
