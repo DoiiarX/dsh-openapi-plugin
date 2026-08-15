@@ -1,5 +1,5 @@
 {
-  "name": "@local/dsh-oneapi-plugin",
+  "name": "@local/dsh-openapi-plugin",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,11 +14,16 @@
   "dependencies": {
     "@deepseek-ai/dsh-tools": "link:D:/Programs/deepseek-harness/packages/core/tools"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DoiiarX/dsh-openapi-plugin.git"
+  },
   "files": [
     "index.js",
     "implementation.js",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "README.zh.md"
   ],
   "dsh": {
     "bundle": {

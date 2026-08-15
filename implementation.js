@@ -1,11 +1,11 @@
 /**
- * one-api bridge plugin (persistent bundle, host composition row).
+ * OpenAPI bridge plugin (persistent bundle, host composition row).
  *
- * Turns one-api style interface definitions (OpenAI function/tool format, or
+ * Turns OpenAPI style interface definitions (OpenAI function/tool format, or
  * OpenAPI 3.x specs) into searchable, invocable function registrations.
  *
  * Tools:
- *   oa_register   — accept a JSON string or URL, parse the one-api format, and
+ *   oa_register   — accept a JSON string or URL, parse the OpenAPI format, and
  *                   register every function found into the local registry.
  *   oa_search     — search registered functions by name/description keyword.
  *   oa_invoke     — call a registered function with arguments over HTTP
@@ -125,7 +125,7 @@ function extractFunctionShape(entry) {
 }
 
 /**
- * Parse a one-api interface source into a list of function shapes.
+ * Parse an OpenAPI interface source into a list of function shapes.
  * Supported forms:
  *   - OpenAI tools array: [{type:'function', function:{name,description,parameters}}]
  *   - OpenAI functions array: [{name,description,parameters}]
@@ -402,9 +402,9 @@ export function applyOneApi(ctx, config = {}, report = () => {}) {
   try {
     ctx.tools.register(defineTool({
       name: 'oa_register',
-      description: '把 one-api 格式的接口定义注册为可搜索/可调用的函数。source 可以是 JSON 字符串（OpenAI tools/functions 数组、单个函数，或 OpenAPI 3.x spec），也可以是指向 JSON 文档的 URL。可选 baseUrl（调用地址）、apiKey、model。',
+      description: '把 OpenAPI 格式的接口定义注册为可搜索/可调用的函数。source 可以是 JSON 字符串（OpenAI tools/functions 数组、单个函数，或 OpenAPI 3.x spec），也可以是指向 JSON 文档的 URL。可选 baseUrl（调用地址）、apiKey、model。',
       parameters: {
-        source: { type: 'string', required: true, description: 'one-api 格式的 JSON 字符串或 JSON 文档 URL' },
+        source: { type: 'string', required: true, description: 'OpenAPI 格式的 JSON 字符串或 JSON 文档 URL' },
         baseUrl: { type: 'string', description: '调用后端地址，如 http://127.0.0.1:3000（OpenAPI 路径的宿主）' },
         apiKey: { type: 'string', description: '可选的 Bearer API Key' },
         model: { type: 'string', description: 'openai 风格的默认模型名' },
@@ -445,7 +445,7 @@ export function applyOneApi(ctx, config = {}, report = () => {}) {
   try {
     ctx.tools.register(defineTool({
       name: 'oa_remove',
-      description: '从注册表中移除一个已注册的 one-api 函数。如果它当前已被 oa_activate 暴露为原生 tool，会先自动停用再移除。',
+      description: '从注册表中移除一个已注册的 OpenAPI 函数。如果它当前已被 oa_activate 暴露为原生 tool，会先自动停用再移除。',
       parameters: {
         name: { type: 'string', required: true, description: '要移除的已注册函数名' },
       },
@@ -465,7 +465,7 @@ export function applyOneApi(ctx, config = {}, report = () => {}) {
   try {
     ctx.tools.register(defineTool({
       name: 'oa_search',
-      description: '按关键词搜索已注册的 one-api 函数（匹配名称与描述）。',
+      description: '按关键词搜索已注册的 OpenAPI 函数（匹配名称与描述）。',
       parameters: {
         query: { type: 'string', required: true, description: '搜索关键词' },
       },
@@ -499,7 +499,7 @@ export function applyOneApi(ctx, config = {}, report = () => {}) {
   try {
     ctx.tools.register(defineTool({
       name: 'oa_invoke',
-      description: '传参调用一个已注册的 one-api 函数（通过 HTTP 请求后端，宽松模式：参数为自由 JSON）。openai 风格走 /v1/chat/completions + tool_choice；openapi 风格按 method/path 直接请求。',
+      description: '传参调用一个已注册的 OpenAPI 函数（通过 HTTP 请求后端，宽松模式：参数为自由 JSON）。openai 风格走 /v1/chat/completions + tool_choice；openapi 风格按 method/path 直接请求。',
       parameters: {
         name: { type: 'string', required: true, description: '已注册的函数名' },
         args: { type: 'json', description: '传给函数的参数对象，例如 {"city":"chengdu"}' },
@@ -525,7 +525,7 @@ export function applyOneApi(ctx, config = {}, report = () => {}) {
   try {
     ctx.tools.register(defineTool({
       name: 'oa_activate',
-      description: '把已注册的 one-api 函数 TEMPORARILY 暴露为原生 model tool（严格 JSON schema，模型下一轮可直接以严格模式调用）。不用了请用 oa_deactivate 停用。',
+      description: '把已注册的 OpenAPI 函数 TEMPORARILY 暴露为原生 model tool（严格 JSON schema，模型下一轮可直接以严格模式调用）。不用了请用 oa_deactivate 停用。',
       parameters: {
         name: { type: 'string', required: true, description: '已注册的函数名' },
         toolName: { type: 'string', description: '原生 tool 名；缺省用函数名' },

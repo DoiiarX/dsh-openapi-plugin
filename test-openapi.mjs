@@ -1,5 +1,5 @@
 /**
- * Smoke test: load the one-api implementation with a mock ctx, then exercise
+ * Smoke test: load the OpenAPI implementation with a mock ctx, then exercise
  * the registry helpers by calling the registered tool executes directly.
  */
 import { applyOneApi } from './implementation.js'

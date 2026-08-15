@@ -1,16 +1,16 @@
-# dsh-oneapi-plugin
+# dsh-openapi-plugin
 
 > [English](README.md) | [中文](README.zh.md)
 
 > 本插件属于 [dsh-plugins](https://github.com/DoiiarX/dsh-plugins) 合集，完整的自研插件索引见该仓库。
 
-Persistent DeepSeek Harness bundle bridging one-api style interfaces into
+Persistent DeepSeek Harness bundle bridging OpenAPI style interfaces into
 searchable, invocable function registrations.
 
 ## What it provides
 
 - **`oa_register`** — accept a JSON string or a JSON document URL, parse the
-  one-api format, and register every function found. Supported formats:
+  OpenAPI format, and register every function found. Supported formats:
   - OpenAI `tools` array (`{type:'function', function:{...}}`)
   - OpenAI `functions` array (`{name, description, parameters}`)
   - a single function/tool object
@@ -48,19 +48,19 @@ searchable, invocable function registrations.
 复制下面的指令块给你的 DSH agent，它会自动完成安装：
 
 ```text
-请安装 oneapi 插件（@local/dsh-oneapi-plugin）：
+请安装 openapi 插件（@local/dsh-openapi-plugin）：
 
 1. 前置：本机已有 deepseek-harness 源码（本插件 link 依赖其中的 dsh-tools 包，
    位于 <deepseek-harness>/packages/core/tools）。
 2. 克隆仓库：
-   git clone https://github.com/DoiiarX/dsh-oneapi-plugin
-   cd dsh-oneapi-plugin
+   git clone https://github.com/DoiiarX/dsh-openapi-plugin
+   cd dsh-openapi-plugin
 3. 安装依赖：pnpm install
    （如果 package.json 里 dsh-tools 的 link 路径与你机器不符，改成你的
    deepseek-harness 实际路径后再装。）
 4. 挂进 web profile：编辑 $HOME/.dsh/profiles/web/package.json，
-   在 dependencies 加 "@local/dsh-oneapi-plugin": "link:<本插件目录绝对路径>"，
-   在 dsh.profile.bundles 加 "@local/dsh-oneapi-plugin"。
+   在 dependencies 加 "@local/dsh-openapi-plugin": "link:<本插件目录绝对路径>"，
+   在 dsh.profile.bundles 加 "@local/dsh-openapi-plugin"。
 5. 在 profile 目录执行 pnpm install。
 6. 重启 web 进程，验证工具列表出现 oa_register / oa_search / oa_invoke 等工具。
 ```

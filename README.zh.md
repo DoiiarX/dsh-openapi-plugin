@@ -1,15 +1,15 @@
-# dsh-oneapi-plugin
+# dsh-openapi-plugin
 
 > [English](README.md) | 中文
 
 > 本插件属于 [dsh-plugins](https://github.com/DoiiarX/dsh-plugins) 合集，完整的自研插件索引见该仓库。
 
-将 one-api 风格接口桥接为可搜索、可调用的函数注册项的持久化 DeepSeek Harness 插件包。
+将 OpenAPI 风格接口桥接为可搜索、可调用的函数注册项的持久化 DeepSeek Harness 插件包。
 
 ## 提供的功能
 
 - **`oa_register`** — 接受 JSON 字符串或 JSON 文档 URL，解析
-  one-api 格式，并注册找到的每一个函数。支持的格式：
+  OpenAPI 格式，并注册找到的每一个函数。支持的格式：
   - OpenAI `tools` 数组（`{type:'function', function:{...}}`）
   - OpenAI `functions` 数组（`{name, description, parameters}`）
   - 单个函数/工具对象
