@@ -1,0 +1,28 @@
+{
+  "name": "@local/dsh-oneapi-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test.mjs"
+  },
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-tools": "link:D:/Programs/deepseek-harness/packages/core/tools"
+  },
+  "files": [
+    "index.js",
+    "implementation.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

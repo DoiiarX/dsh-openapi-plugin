@@ -1,0 +1,3 @@
+- insert:
+    - id: pn-oneapi
+      name: '@local/dsh-oneapi-plugin'
