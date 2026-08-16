@@ -6,17 +6,17 @@
  * are imported inside apply(), where failures become diagnostics instead of
  * rejecting the Loader entry and taking down the DSH profile.
  */
-export const name = 'pn-openapi-supervisor'
+export const name = 'dsh-openapi-supervisor'
 export const inject = ['tools', 'fs']
 
 function diagnostic(scope, error) {
   const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-  return `[pn-openapi] ${scope} unavailable: ${detail}`
+  return `[dsh-openapi] ${scope} unavailable: ${detail}`
 }
 
 function report(ctx, scope, error) {
   const message = diagnostic(scope, error)
-  const logger = ctx.root?.logger?.('pn-openapi')
+  const logger = ctx.root?.logger?.('dsh-openapi')
   if (logger?.error) logger.error('%s', message)
   console.error(message)
 }
