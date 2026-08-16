@@ -1,5 +1,5 @@
 {
-  "name": "@local/dsh-openapi-plugin",
+  "name": "@doiiarx/dsh-openapi-plugin",
   "version": "0.1.0",
   "private": true,
   "type": "module",
