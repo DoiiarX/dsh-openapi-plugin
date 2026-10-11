@@ -1,68 +1,131 @@
 # dsh-openapi-plugin
 
-> [English](README.md) | [中文](README.zh.md)
+> English | [中文](README.zh.md)
 
-> 本插件属于 [dsh-plugins](https://github.com/DoiiarX/dsh-plugins) 合集，完整的自研插件索引见该仓库。
+> Part of the [dsh-plugins](https://github.com/DoiiarX/dsh-plugins) collection; see that repository for the full index.
 
-Persistent DeepSeek Harness bundle bridging OpenAPI style interfaces into
-searchable, invocable function registrations.
+A persistent DeepSeek Harness plugin that bridges OpenAPI style interface
+definitions into searchable, invocable registrations organized as **apps**
+(packages).
 
-## What it provides
+## The model
 
-- **`oa_register`** — accept a JSON string or a JSON document URL, parse the
-  OpenAPI format, and register every function found. Supported formats:
-  - OpenAI `tools` array (`{type:'function', function:{...}}`)
-  - OpenAI `functions` array (`{name, description, parameters}`)
-  - a single function/tool object
-  - OpenAPI 3.x spec (`paths` → one registration per operation)
-- **`oa_remove`** — remove a registered function from the registry. If it is
-  currently activated as a native tool, it is deactivated first, then removed.
-- **`oa_search`** — search registered functions by name/description keyword.
-- **`oa_invoke`** — call a registered function with arguments over HTTP
-  (loose mode: arguments are free JSON).
-  - openai kind: `POST {baseUrl}/v1/chat/completions` with `tool_choice`
-    forcing that function.
-  - openapi kind: direct request using the operation's method/path with path
-    params substituted and query/body built from arguments.
-- **`oa_activate`** — TEMPORARILY expose one registered function as a NATIVE
-  model tool with its strict JSON schema. After activation the model can call
-  it directly in the next step, with schema validation (strict mode).
-- **`oa_deactivate`** — remove an activated native tool from the model tool
-  list.
+One registration run produces **one app** — a single source's whole interface
+surface. The app owns "how to connect" (base URL, auth) and "what this is"
+(one-line summary). Every operation belongs to **exactly one** app; that
+membership is the hard ownership edge.
+
+Tags are a **loose net** on top: an operation may carry several, and one tag can
+span many apps. Tags exist so the model can recover something it forgot the app
+name of — they never carry ownership.
+
+Operation names only need to be unique **within an app**, so two services that
+both export `getById` no longer silently overwrite each other.
+
+## Discovery path (cheap to expensive)
+
+The intended route — not keyword guessing:
+
+1. `oa_apps()` — **directory**: which apps exist, how many operations each has,
+   what they are for, where they live.
+2. `oa_apps(app)` — **expand one app**: operation names plus a one-line summary,
+   **deliberately without parameters**.
+3. `oa_describe(name, app?)` — **one operation's full contract**: parameters,
+   required fields, auth state, and a ready-to-use call.
+4. `oa_invoke` / `oa_activate` — actually call it.
+
+`oa_search` returns only the app, the operation name and a one-line summary —
+never parameter schemas. Details are fetched on demand with `oa_describe`.
+
+## Tools
+
+**Discovery**
+
+- **`oa_apps`** — no args = directory; with `app` = that app's operation list
+  (no parameter detail).
+- **`oa_describe`** — full contract of one operation (parameters, required,
+  baseUrl, auth state).
+- **`oa_search`** — keyword/tag fallback. `query` may be omitted (= list
+  everything); supports `app` and `tag` filters.
+
+**Calling**
+
+- **`oa_invoke`** — call over HTTP (loose mode: free JSON arguments).
+  openai kind: `POST {baseUrl}/v1/chat/completions` with `tool_choice`;
+  openapi kind: direct request using the operation's method/path with path
+  params substituted and query/body built from arguments.
+- **`oa_activate`** — TEMPORARILY expose one operation as a NATIVE model tool
+  with its strict JSON schema.
+- **`oa_deactivate`** — remove an activated native tool.
 - **`oa_active`** — list currently activated native tools.
+
+**Management**
+
+- **`oa_register`** — parse an OpenAPI source and register it as an app.
+  Supported: OpenAPI 3.x specs, OpenAI `tools` arrays, OpenAI `functions`
+  arrays, and single function objects; `source` is a JSON string or a JSON
+  document URL. The app name defaults to the document's `info.title`, then to
+  the `baseUrl` host, and can be overridden with `app`. OpenAPI
+  `operation.tags` are absorbed automatically.
+- **`oa_remove`** — with `name`, remove one operation; with only `app`, remove
+  the whole app. Activated native tools are torn down first. Removing something
+  absent stays idempotent (a warning, not a throw).
 
 ## Design notes
 
-- Registered functions stay in the registry and are NOT exposed by default —
-  the model tool list stays small. Activation is explicit and temporary:
-  `oa_activate` to expose, `oa_deactivate` to remove.
-- The registry is in-memory per process (functions registered with
-  `oa_register` are not persisted across restarts; re-register after restart).
+- Registered operations are NOT exposed to the model by default — the tool list
+  stays small, and activation is explicit and temporary.
+- The registry **persists** to `$DSH_HOME/storages/openapi-registry.json`
+  (override with the `storagePath` config), so it survives a Host restart.
+- **API keys are never written to disk** — only the fact that one was supplied.
+  After a restart such an app reports `apiKeyLost` /
+  `auth: "bearer-lost-after-restart"` instead of silently failing with a 401.
+- Every tool output is passed through lossless sanitization (drops `undefined`,
+  normalizes `-0`). OpenAPI parameters without a `description` are common, and
+  they used to make the whole `oa_search` call get rejected by the harness gate
+  with `value is not lossless JSON`.
 - Network goes through `ctx.get('proxyFetch')` when the proxy plugin is
-  present, otherwise native `fetch`.
-- Registration requires a `baseUrl` for invocations (the HTTP host that serves
-  the function/endpoint).
+  present, else native `fetch`.
+- openapi-kind operations need a `baseUrl`; openai-kind ones need `model`
+  (defaults to `gpt-4o-mini`).
+
+## Tests
+
+```bash
+node test-openapi.mjs          # smoke: tool surface + register/search/describe/activate/remove
+node test-openapi-remove.mjs   # teardown on remove + idempotent removal
+node test-openapi-apps.mjs     # directory/expand/describe, lossless regression, cross-app
+                               # name collisions, filters, persistence, whole-app removal
+
+# before/after discovery eval (measures whether the model gets better at using it)
+git show HEAD:implementation.js > implementation.old.mjs
+node eval-discovery.mjs
+```
+
+All three tests write to a private temp registry file and never touch the real
+`$DSH_HOME/storages/openapi-registry.json`.
 
 ## Installation
 
-复制下面的指令块给你的 DSH agent，它会自动完成安装：
+Copy the instruction block below to your DSH agent and it will install itself:
 
 ```text
-请安装 openapi 插件（@doiiarx/dsh-openapi-plugin）：
+Please install the openapi plugin (@doiiarx/dsh-openapi-plugin):
 
-1. 前置：本机已有 deepseek-harness 源码（本插件 link 依赖其中的 dsh-tools 包，
-   位于 <deepseek-harness>/packages/core/tools）。
-2. 克隆仓库：
+1. Prerequisite: deepseek-harness sources are on this machine (this plugin links
+   against the dsh-tools package at <deepseek-harness>/packages/core/tools).
+2. Clone:
    git clone https://github.com/DoiiarX/dsh-openapi-plugin
    cd dsh-openapi-plugin
-3. 安装依赖：pnpm install
-   （如果 package.json 里 dsh-tools 的 link 路径与你机器不符，改成你的
-   deepseek-harness 实际路径后再装。）
-4. 挂进 web profile：编辑 $HOME/.dsh/profiles/web/package.json，
-   在 dependencies 加 "@doiiarx/dsh-openapi-plugin": "link:<本插件目录绝对路径>"，
-   在 dsh.profile.bundles 加 "@doiiarx/dsh-openapi-plugin"。
-5. 在 profile 目录执行 pnpm install。
-6. 重启 web 进程，验证工具列表出现 oa_register / oa_search / oa_invoke 等工具。
+3. Install deps: pnpm install
+   (If the dsh-tools link path in package.json does not match your machine,
+   fix it to your deepseek-harness path before installing.)
+4. Mount into the web profile: edit $HOME/.dsh/profiles/web/package.json, add
+   "@doiiarx/dsh-openapi-plugin": "link:<absolute path to this plugin>" to
+   dependencies, and add "@doiiarx/dsh-openapi-plugin" to dsh.profile.bundles.
+5. Run pnpm install in the profile directory.
+6. Restart the web process and verify oa_register / oa_apps / oa_describe /
+   oa_search appear in the tool list.
 ```
 
-本插件无设置页，不需要改 WEB_SETTINGS_NAMESPACES 白名单。
+This plugin has no settings page and needs no WEB_SETTINGS_NAMESPACES entry.

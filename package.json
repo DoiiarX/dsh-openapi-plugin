@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test.mjs"
+    "test": "node test-openapi.mjs && node test-openapi-remove.mjs && node test-openapi-apps.mjs",
+    "eval:discovery": "node eval-discovery.mjs"
   },
   "main": "./index.js",
   "exports": {
@@ -12,7 +13,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@deepseek-ai/dsh-tools": "link:D:/Programs/deepseek-harness/packages/core/tools"
+    "@deepseek-ai/dsh-tools": "link:D:/Programs/dsh-0.2.1/packages/core/tools"
   },
   "repository": {
     "type": "git",
